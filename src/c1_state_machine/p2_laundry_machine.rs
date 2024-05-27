@@ -35,17 +35,17 @@ pub enum ClothesAction {
     Dry,
 }
 
-fn tatter_helper(life: u64, next_state_if_untattered: ClothesState) -> ClothesState {
-    match life {
-        0 => ClothesState::Tattered,
-        more_to_go => match next_state_if_untattered {
-            ClothesState::Clean(_) => ClothesState::Clean(more_to_go),
-            ClothesState::Dirty(_) => ClothesState::Dirty(more_to_go),
-            ClothesState::Wet(_) => ClothesState::Wet(more_to_go),
-            ClothesState::Tattered => ClothesState::Tattered
-        }
-    }
-}
+// fn tatter_helper(life: u64, next_state_if_untattered: ClothesState) -> ClothesState {
+//     match life {
+//         0 => ClothesState::Tattered,
+//         more_to_go => match next_state_if_untattered {
+//             ClothesState::Clean(_) => ClothesState::Clean(more_to_go),
+//             ClothesState::Dirty(_) => ClothesState::Dirty(more_to_go),
+//             ClothesState::Wet(_) => ClothesState::Wet(more_to_go),
+//             ClothesState::Tattered => ClothesState::Tattered
+//         }
+//     }
+// }
 
 impl StateMachine for ClothesMachine {
     type State = ClothesState;
@@ -74,7 +74,6 @@ impl StateMachine for ClothesMachine {
         // }
 
         // alternate implementation by matching on state instead of action
-
         match starting_state {
             ClothesState::Clean(life) | ClothesState::Dirty(life) | ClothesState::Wet(life) => match life {
                 1 => ClothesState::Tattered,
