@@ -35,12 +35,43 @@ pub enum ClothesAction {
     Dry,
 }
 
+fn tatter_helper(life: u64, next_state_if_untattered: ClothesState) -> ClothesState {
+    match life {
+        0 => ClothesState::Tattered,
+        more_to_go => match next_state_if_untattered {
+            ClothesState::Clean(_) => ClothesState::Clean(more_to_go),
+            ClothesState::Dirty(_) => ClothesState::Dirty(more_to_go),
+            ClothesState::Wet(_) => ClothesState::Wet(more_to_go),
+            ClothesState::Tattered => ClothesState::Tattered
+        }
+    }
+}
+
 impl StateMachine for ClothesMachine {
     type State = ClothesState;
     type Transition = ClothesAction;
 
     fn next_state(starting_state: &ClothesState, t: &ClothesAction) -> ClothesState {
-        todo!("Exercise 3")
+        match t {
+            ClothesAction::Dry => match starting_state {
+                ClothesState::Clean(life) => tatter_helper(life - 1, ClothesState::Clean(0)),
+                ClothesState::Wet(life) => tatter_helper(life - 1, ClothesState::Clean(0)),
+                ClothesState::Dirty(life) => tatter_helper(life - 1, ClothesState::Dirty(0)),
+                ClothesState::Tattered => ClothesState::Tattered
+            }
+            ClothesAction::Wash => match starting_state {
+                ClothesState::Clean(life) => tatter_helper(life - 1, ClothesState::Wet(0)),
+                ClothesState::Wet(life) => tatter_helper(life - 1, ClothesState::Wet(0)),
+                ClothesState::Dirty(life) => tatter_helper(life - 1, ClothesState::Wet(0)),
+                ClothesState::Tattered => ClothesState::Tattered
+            }
+            ClothesAction::Wear => match starting_state {
+                ClothesState::Clean(life) => tatter_helper(life - 1, ClothesState::Dirty(0)),
+                ClothesState::Wet(life) => tatter_helper(life - 1, ClothesState::Dirty(0)),
+                ClothesState::Dirty(life) => tatter_helper(life - 1, ClothesState::Dirty(0)),
+                ClothesState::Tattered => ClothesState::Tattered
+            }
+        }
     }
 }
 
