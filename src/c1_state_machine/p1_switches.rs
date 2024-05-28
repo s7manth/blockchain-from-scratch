@@ -31,6 +31,7 @@ pub struct TwoSwitches {
 }
 
 /// Now there are two switches so we need a proper type for the transition.
+#[allow(dead_code)]
 pub enum Toggle {
     FirstSwitch,
     SecondSwitch,
