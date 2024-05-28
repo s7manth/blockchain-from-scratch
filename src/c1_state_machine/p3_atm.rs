@@ -5,6 +5,7 @@
 use super::StateMachine;
 
 /// The keys on the ATM keypad
+#[allow(dead_code)]
 #[derive(Hash, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Key {
     One,
@@ -15,6 +16,7 @@ pub enum Key {
 }
 
 /// Something you can do to the ATM
+#[allow(dead_code)]
 pub enum Action {
     /// Swipe your card at the ATM. The attached value is the hash of the pin
     /// that should be keyed in on the keypad next.
@@ -117,7 +119,7 @@ impl StateMachine for Atm {
 
                                 acc * 10 + digit
                             });
-                            println!("INFO amount requested {:?}", attempt);
+                            // println!("INFO amount requested {:?}", attempt);
                             if attempt <= state.cash_inside {
                                 state.cash_inside -= attempt;
                             }
