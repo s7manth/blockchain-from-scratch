@@ -24,6 +24,7 @@ pub enum ClothesState {
 }
 
 /// Something you can do with clothes
+#[allow(dead_code)]
 pub enum ClothesAction {
     /// Wearing clothes decreases their life by 1 and makes them dirty.
     Wear,
