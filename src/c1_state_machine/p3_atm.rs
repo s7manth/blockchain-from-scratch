@@ -5,7 +5,7 @@
 use super::StateMachine;
 
 /// The keys on the ATM keypad
-#[derive(Hash, Debug, PartialEq, Eq, Clone)]
+#[derive(Hash, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Key {
     One,
     Two,
@@ -52,13 +52,90 @@ pub struct Atm {
     keystroke_register: Vec<Key>,
 }
 
+// TODO: find a more *rusty* way to do this exercise
 impl StateMachine for Atm {
     // Notice that we are using the same type for the state as we are using for the machine this time.
     type State = Self;
     type Transition = Action;
 
     fn next_state(starting_state: &Self::State, t: &Self::Transition) -> Self::State {
-        todo!("Exercise 4")
+        // you could be in three different positions:
+        // waiting => you just entered the atm booth
+        // authenticated => then you just enter the amount to withdraw
+        // authenticating => after you swipe card, you now know the hash,
+        // and are waiting for the user to enter the pin
+        let mut state = starting_state.clone();
+
+        match state.expected_pin_hash {
+            Auth::Waiting => match t {
+                Action::PressKey(_key) => {
+                    // why are you pressing keys without swiping the card?
+                },
+                Action::SwipeCard(hash) => {
+                    state.expected_pin_hash = Auth::Authenticating(*hash);
+                    state.keystroke_register = Vec::new();
+                }
+            },
+            Auth::Authenticating(hash) => match t {
+                Action::PressKey(key) => {
+                    // yeah now you can enter your pin
+                    // check whether one presses enter to wait for withdrawal access
+                    match key {
+                        Key::Enter => {
+                            let attempt = crate::hash(&state.keystroke_register);
+                            if attempt == hash {
+                                state.expected_pin_hash = Auth::Authenticated;
+                            } else {
+                                state.expected_pin_hash = Auth::Waiting;
+                            }
+                            state.keystroke_register = Vec::new();
+                        },
+                        Key::One | Key::Two | Key::Three | Key::Four => {
+                            state.keystroke_register.push(*key)
+                        }
+                    }
+                },
+                Action::SwipeCard(h) => {
+                    state.expected_pin_hash = Auth::Authenticating(*h);
+                    if *h != hash {
+                        state.keystroke_register = Vec::new();
+                    }
+                }
+            },
+            Auth::Authenticated => match t {
+                Action::PressKey(key) => {
+                    match key {
+                        Key::Enter => {
+                            let attempt = state.keystroke_register.iter().fold(0, |acc, x| {
+                                let digit = match x {
+                                    Key::One => 1,
+                                    Key::Two => 2,
+                                    Key::Three => 3,
+                                    Key::Four => 4,
+                                    _ => 0 // it won't be possible since this is bound to get intercepted earlier
+                                };
+
+                                acc * 10 + digit
+                            });
+                            println!("INFO amount requested {:?}", attempt);
+                            if attempt <= state.cash_inside {
+                                state.cash_inside -= attempt;
+                            }
+                            state.expected_pin_hash = Auth::Waiting;
+                            state.keystroke_register = Vec::new();
+                        },
+                        Key::One | Key::Two | Key::Three | Key::Four => {
+                            state.keystroke_register.push(*key)
+                        }
+                    }
+                },
+                Action::SwipeCard(hash) => {
+                    state.expected_pin_hash = Auth::Authenticating(*hash);
+                    state.keystroke_register = Vec::new();
+                }
+            },
+        }
+        state
     }
 }
 
