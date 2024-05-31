@@ -50,13 +50,23 @@ impl StateMachine for AccountedCurrency {
 
         match t {
             AccountingTransaction::Burn { burner, amount } => {
-                if let Some(balance) = state.get_mut(burner) {
-                    if *balance > *amount {
-                        *balance -= *amount;
-                    } else {
+                match state.get_mut(burner) {
+                    Some(balance) if *balance > *amount => *balance -= *amount,
+                    Some(_balance) => {
                         state.remove(burner);
                     }
+                    _ => ()
                 };
+
+                // state.get_mut(burner).and_then(|balance| {
+                // });
+                // if let Some(balance) = state.get_mut(burner) {
+                //     if *balance > *amount {
+                //         *balance -= *amount;
+                //     } else {
+                //         state.remove(burner);
+                //     }
+                // };
             },
             AccountingTransaction::Mint { minter, amount } => {
                 if *amount > 0 {
